@@ -1,12 +1,14 @@
 ﻿using CarRacing.Core.Contracts;
 using CarRacing.Models.Cars;
 using CarRacing.Models.Cars.Contracts;
+using CarRacing.Models.Maps;
 using CarRacing.Models.Maps.Contracts;
 using CarRacing.Models.Racers;
 using CarRacing.Models.Racers.Contracts;
 using CarRacing.Repositories;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace CarRacing.Core
@@ -15,11 +17,12 @@ namespace CarRacing.Core
     {
         private CarRepository cars;
         private RacerRepository racers;
-        private IMap map;
+        private Map map;
         public Controller()
         {
             cars = new CarRepository();
             racers = new RacerRepository();
+            map = new Map();
         }
 
         public string AddCar(string type, string make, string model, string VIN, int horsePower)
@@ -72,20 +75,27 @@ namespace CarRacing.Core
 
         public string BeginRace(string racerOneUsername, string racerTwoUsername)
         {
+            if (racers.FindBy(racerOneUsername) is null || racers.FindBy(racerTwoUsername) is null)
+            {
+                throw new ArgumentException($"Racer " +
+                    $"{(racers.FindBy(racerOneUsername) is null ? racerOneUsername : racerTwoUsername)} cannot be found!");
+            }
+
             var racer1 = racers.FindBy(racerOneUsername);
             var racer2 = racers.FindBy(racerTwoUsername);
-
-            if (racer1 is null || racer2 is null)
-            {
-                throw new ArgumentException($"Racer {(racer1 is null ? racer1.Username : racer2.Username)} cannot be found!");
-            }
 
             return map.StartRace(racer1, racer2);
         }
 
         public string Report()
         {
-            throw new NotImplementedException();
+            var sb = new StringBuilder();
+            foreach (var racer in racers.Models.OrderByDescending(m => m.DrivingExperience).ThenBy(m => m.Username))
+            {
+                sb.AppendLine(racer.ToString());
+            }
+
+            return sb.ToString().Trim();
         }
     }
 }

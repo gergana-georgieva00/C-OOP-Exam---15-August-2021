@@ -78,7 +78,27 @@ namespace CarRacing.Models.Racers
         }
 
         public bool IsAvailable()
-            => Car.FuelAvailable >= 0;
+        {
+            if (this.Car.FuelAvailable - this.Car.FuelConsumptionPerRace >= 0 && this.Car.GetType().Name != "TunedCar")
+            {
+                return true;
+            }
+            else if (this.Car.FuelAvailable - this.Car.FuelConsumptionPerRace >= 0 && this.Car.GetType().Name == "TunedCar")
+            {
+                if ((int)Math.Round(this.Car.HorsePower - (Car.HorsePower * 0.03)) > 0)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         public void Race()
         {
@@ -92,5 +112,11 @@ namespace CarRacing.Models.Racers
                 this.DrivingExperience += 5;
             }
         }
+
+        public override string ToString()
+            => $"{this.GetType().Name}: {this.Username}" + Environment.NewLine
+                + $"--Driving behavior: {this.RacingBehavior}" + Environment.NewLine
+                + $"--Driving experience: {this.DrivingExperience}" + Environment.NewLine
+                + $"--Car: {this.Car.Make} {this.Car.Model} ({this.Car.VIN})";
     }
 }
